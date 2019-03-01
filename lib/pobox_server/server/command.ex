@@ -1,9 +1,8 @@
 defmodule PoboxServer.Server.Command do
-  @doc ~S"""
-
-  """ 
-  def parse(_line) do
-   :not_implemented 
+  def parse(line) do
+    case String.split(line) do
+      ["send_sqs", message] -> {:ok, {:send_sqs, message}}
+      _ -> {:error, :unknown_command}
+    end
   end
-
 end

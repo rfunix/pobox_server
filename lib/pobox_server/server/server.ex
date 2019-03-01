@@ -1,40 +1,54 @@
-defmodule PoboxServer.Server do
+defmodule PoboxServer.Server.TCPServer do
   require Logger
+  use GenServer
 
-  def accept(port) do
+
+  ## Callbacks
+  
+  
+  @impl true
+  def init({port} = _args) do
+    Logger.info("Accepting connections on port #{port}")
+
     {:ok, socket} =
       :gen_tcp.listen(port, [:binary, packet: :line, active: false, reuseaddr: true])
 
-    Logger.info("Accepting connections on port #{port}")
-    loop_receive_clients(socket)
+    receive_poller()
+    {:ok, socket}
   end
 
-  defp loop_receive_clients(socket) do
+  @impl true
+  def handle_info(:pool, socket) do
     {:ok, client} = :gen_tcp.accept(socket)
 
-    {:ok, pid} =
-      Task.Supervisor.start_child(PoboxServer.Server.TaskSupervisor, fn -> serve(client) end)
+    Logger.info("Client connected")
 
-    # use supervisor pid for controller client process
-    :ok = :gen_tcp.controlling_process(client, pid)
+    create_connection_worker(client)
 
-    loop_receive_clients(socket)
+    receive_poller()
+    {:noreply, socket}
   end
 
-  defp serve(socket) do
-    socket
-    |> read_line()
-    |> write_line(socket)
+  @impl true
+  def handle_cast({:create_connection_worker, client}, socket) do
+    spawn(PoboxServer.Server.ConnectionWorker, :start_link, [{client}])
 
-    serve(socket)
+    {:noreply, socket}
   end
 
-  defp read_line(socket) do
-    {:ok, data} = :gen_tcp.recv(socket, 0)
-    data
+
+  # Server
+  
+  
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  defp write_line(line, socket) do
-    :gen_tcp.send(socket, line)
+  defp receive_poller() do
+    send(self(), :pool)
+  end
+
+  defp create_connection_worker(client) do
+    GenServer.cast(__MODULE__, {:create_connection_worker, client})
   end
 end

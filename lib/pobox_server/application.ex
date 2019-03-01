@@ -7,8 +7,10 @@ defmodule PoboxServer.Application do
     port = String.to_integer(System.get_env("PORT") || "4040")
 
     children = [
-      {Task.Supervisor, name: PoboxServer.Server.TaskSupervisor},
-      Supervisor.child_spec({Task, fn -> PoboxServer.Server.accept(port) end}, restart: :permanent)
+      %{
+      	id: PoboxServer,
+        start: {PoboxServer.Server.TCPServer, :start_link, [{port}]}
+      }
     ]
 
     opts = [strategy: :one_for_one, name: PoboxServer.Supervisor]
