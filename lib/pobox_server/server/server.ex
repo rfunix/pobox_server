@@ -2,10 +2,8 @@ defmodule PoboxServer.Server.TCPServer do
   require Logger
   use GenServer
 
-
   ## Callbacks
-  
-  
+
   @impl true
   def init({port} = _args) do
     Logger.info("Accepting connections on port #{port}")
@@ -36,16 +34,14 @@ defmodule PoboxServer.Server.TCPServer do
     {:noreply, socket}
   end
 
-
   # Server
-  
-  
+
   def start_link(args) do
     GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   defp receive_poller() do
-    send(self(), :pool)
+    Process.send_after(self(), :pool, 100)
   end
 
   defp create_connection_worker(client) do

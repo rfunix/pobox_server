@@ -2,18 +2,10 @@ defmodule PoboxServer.Server.ConnectionWorker do
   use GenServer
   require Logger
 
-  def start_link(args) do
-    GenServer.start_link(__MODULE__, args)
-  end
-
   @impl true
   def init({socket} = _args) do
     serve_poller()
     {:ok, socket}
-  end
-
-  defp serve_poller() do
-    send(self(), :pool)
   end
 
   @impl true
@@ -26,6 +18,14 @@ defmodule PoboxServer.Server.ConnectionWorker do
     write_line(socket, msg)
     serve_poller()
     {:noreply, socket}
+  end
+
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, args)
+  end
+
+  defp serve_poller() do
+    Process.send_after(self(), :pool, 100)
   end
 
   defp run_command(command) do
