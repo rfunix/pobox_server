@@ -16,7 +16,7 @@ defmodule PoboxServer.Server.Command do
   end
 
   defp parse_send_to_sqs_command(line) do
-    case Regex.named_captures(~r/(?<command>.*?)\s(?<queue>.*?)[\s$](?<payload>.*})/, line) do
+    case Regex.named_captures(~r/(?<command>.*?)\s(?<queue>.*?)[\s](?<payload>.*})/, line) do
       %{"command" => "send_to_sqs", "queue" => queue, "payload" => payload} ->
         {:ok, {:send_to_sqs, queue, payload}}
 
