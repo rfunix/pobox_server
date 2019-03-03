@@ -30,7 +30,7 @@ defmodule PoboxServer.Server.ConnectionWorker do
 
   defp run_command(command) do
     IO.inspect(command)
-    {:ok, "not implemented"}
+    {:ok, "not implemented\r\n"}
   end
 
   defp read_line(socket) do
