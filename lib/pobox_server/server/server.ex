@@ -30,7 +30,6 @@ defmodule PoboxServer.Server.TCPServer do
   @impl true
   def handle_cast({:create_connection_worker, client}, socket) do
     spawn(PoboxServer.Server.ConnectionWorker, :start_link, [{client}])
-
     {:noreply, socket}
   end
 

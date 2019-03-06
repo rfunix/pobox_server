@@ -28,6 +28,21 @@ defmodule PoboxServer.Server.ConnectionWorker do
     Process.send_after(self(), :pool, 100)
   end
 
+  defp run_command({:send_to_sqs, queue, message}) do
+    task = Task.async(fn -> PoboxServer.Plugins.SQS.send_message(queue, message) end)
+
+    case Task.await(task) do
+      {:ok, _result} ->
+        {:ok, 'sqs message published\r\n'}
+
+      {:error, {:http_error, _, %{message: error_message}}} ->
+        {:error, 'problem to send_sqs message #{error_message}\r\n'}
+
+      _ ->
+        {:error, 'ops, unknown problem to send_sqs message\r\n'}
+    end
+  end
+
   defp run_command(command) do
     IO.inspect(command)
     {:ok, "not implemented\r\n"}
@@ -50,7 +65,8 @@ defmodule PoboxServer.Server.ConnectionWorker do
   end
 
   defp write_line(socket, {:error, error}) do
-    :gen_tcp.send(socket, "ERROR\r\n")
-    exit(error)
+    :gen_tcp.send(socket, error)
+    #:gen_tcp.close(socket)
+    #exit(error)
   end
 end
