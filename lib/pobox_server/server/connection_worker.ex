@@ -48,8 +48,24 @@ defmodule PoboxServer.Server.ConnectionWorker do
     {:ok, "not implemented\r\n"}
   end
 
+  defp read_line(lines, socket) do
+    {:ok, line} = :gen_tcp.recv(socket, 0)
+    case String.contains?(line, "end_command") do
+      true -> 
+        command_text = lines <> line
+        {:ok, command_text}
+      false ->
+        lines <> line
+        |> read_line(socket)
+    end
+  end
+
   defp read_line(socket) do
-    :gen_tcp.recv(socket, 0)
+    case :gen_tcp.recv(socket, 0) do
+      {:ok, line} -> read_line(line, socket)
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   defp write_line(socket, {:ok, text}) do
@@ -66,7 +82,6 @@ defmodule PoboxServer.Server.ConnectionWorker do
 
   defp write_line(socket, {:error, error}) do
     :gen_tcp.send(socket, error)
-    #:gen_tcp.close(socket)
-    #exit(error)
+    exit(:shutdown)
   end
 end
