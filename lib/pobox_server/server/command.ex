@@ -4,7 +4,7 @@ defmodule PoboxServer.Server.Command do
 
   ## Examples
 
-    iex> PoboxServer.Server.Command.parse("send_to_sqs queue_test {\"id\": \"xx\", \"name\": \"test\", \"nested\": {\"date\": \"2018-01-01\"}}\r\n")
+    iex> PoboxServer.Server.Command.parse("send_to_sqs queue_test {\"id\": \"xx\", \"name\": \"test\", \"nested\": {\"date\": \"2018-01-01\"}}\nend_command")
     {:ok, {:send_to_sqs, "queue_test", "{\"id\": \"xx\", \"name\": \"test\", \"nested\": {\"date\": \"2018-01-01\"}}"}}
 
   """
